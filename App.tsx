@@ -21,24 +21,19 @@ const App: React.FC = () => {
     const today = new Date().toLocaleDateString('ko-KR');
     
     try {
-      // 1. Generate Question
-      console.log("Generating question for:", today);
       const question = await generateDailyQuestion(today);
       setState(prev => ({ ...prev, question }));
 
-      // 2. Generate Audio
-      console.log("Generating audio for dialogue...");
       const buffer = await generateQuestionAudio(question);
       setAudioBuffer(buffer);
       setState(prev => ({ ...prev, loading: false }));
     } catch (err: any) {
       console.error("Fetch error details:", err);
-      // 구체적인 에러 메시지를 상태에 저장
       const errorMessage = err.message || "알 수 없는 오류가 발생했습니다.";
       setState(prev => ({ 
         ...prev, 
         loading: false, 
-        error: `오류 발생: ${errorMessage}\n(Vercel 설정에서 API_KEY가 올바른지 확인해주세요.)` 
+        error: errorMessage
       }));
     }
   }, []);
@@ -69,7 +64,7 @@ const App: React.FC = () => {
           </div>
           <div>
             <h1 className="text-2xl font-bold text-slate-800">오늘의 문제 생성 중...</h1>
-            <p className="text-slate-500 mt-2">AI가 매일 새로운 수능형 듣기 문제를 준비합니다.</p>
+            <p className="text-slate-500 mt-2">AI가 수능형 문제를 만들고 목소리를 입히고 있습니다.</p>
           </div>
         </div>
       </div>
@@ -78,23 +73,63 @@ const App: React.FC = () => {
 
   if (state.error || !state.question) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 p-6 text-center">
-        <div className="max-w-md w-full space-y-4">
-          <i className="fa-solid fa-triangle-exclamation text-red-500 text-5xl"></i>
-          <h2 className="text-xl font-bold text-slate-800">문제를 불러오지 못했습니다</h2>
-          <div className="p-4 bg-red-50 rounded-lg text-red-700 text-sm font-mono whitespace-pre-wrap text-left">
-            {state.error}
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 p-6">
+        <div className="max-w-xl w-full space-y-8">
+          <div className="text-center space-y-4">
+            <div className="w-20 h-20 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto text-3xl shadow-sm">
+              <i className="fa-solid fa-key"></i>
+            </div>
+            <h2 className="text-2xl font-bold text-slate-800">API 키 설정이 필요합니다</h2>
+            <p className="text-slate-600">Vercel 환경 변수에 API 키가 등록되지 않았습니다.</p>
           </div>
-          <button 
-            onClick={fetchDailyContent}
-            className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-bold shadow-md"
-          >
-            다시 시도하기
-          </button>
-          <p className="text-xs text-slate-400 mt-4">
-            TIP: Vercel 프로젝트 설정의 Environment Variables에 <br/>
-            <strong>API_KEY</strong>가 등록되어 있는지 확인하세요.
-          </p>
+
+          <div className="bg-white p-6 rounded-2xl shadow-xl border border-slate-200 space-y-6">
+            <h3 className="font-bold text-slate-800 flex items-center gap-2 border-b pb-3">
+              <i className="fa-solid fa-circle-info text-blue-500"></i>
+              Vercel에서 해결하는 방법
+            </h3>
+            
+            <div className="space-y-4 text-sm text-slate-700">
+              <div className="flex gap-3">
+                <span className="w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center shrink-0 font-bold">1</span>
+                <p>Vercel 프로젝트 페이지에서 <strong>Settings</strong> → <strong>Environment Variables</strong>로 이동하세요.</p>
+              </div>
+              <div className="flex gap-3">
+                <span className="w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center shrink-0 font-bold">2</span>
+                <p>Key에 <code className="bg-slate-100 px-1 rounded text-red-600 font-bold">API_KEY</code>를 입력하세요.</p>
+              </div>
+              <div className="flex gap-3">
+                <span className="w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center shrink-0 font-bold">3</span>
+                <p>Value에 본인의 Gemini API 키를 넣고 <strong>Add</strong>를 누르세요.</p>
+              </div>
+              <div className="flex gap-3">
+                <span className="w-6 h-6 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center shrink-0 font-bold">!</span>
+                <p className="font-semibold text-amber-700">마지막으로 Deployments 메뉴에서 'Redeploy'를 해야 적용됩니다.</p>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-3">
+              <a 
+                href="https://aistudio.google.com/app/apikey" 
+                target="_blank" 
+                rel="noreferrer"
+                className="w-full py-3 bg-slate-100 text-slate-700 rounded-xl font-bold text-center hover:bg-slate-200 transition-colors flex items-center justify-center gap-2"
+              >
+                <i className="fa-solid fa-external-link text-xs"></i>
+                Gemini API 키 발급받기
+              </a>
+              <button 
+                onClick={fetchDailyContent}
+                className="w-full py-4 bg-blue-600 text-white rounded-xl font-bold shadow-lg shadow-blue-200 hover:bg-blue-700 transition-all transform active:scale-[0.98]"
+              >
+                설정 완료 후 다시 시도하기
+              </button>
+            </div>
+          </div>
+          
+          <div className="text-center">
+            <p className="text-xs text-slate-400 font-mono">Error Log: {state.error}</p>
+          </div>
         </div>
       </div>
     );
