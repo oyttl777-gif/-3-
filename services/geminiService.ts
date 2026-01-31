@@ -1,10 +1,9 @@
 
 import { GoogleGenAI, Type, Modality } from "@google/genai";
-import { EnglishQuestion } from "../types";
+import { EnglishQuestion } from "../types.ts";
 
 const API_KEY = process.env.API_KEY || "";
 
-// Custom base64 decoding as per guidelines
 function decode(base64: string) {
   const binaryString = atob(base64);
   const len = binaryString.length;
@@ -15,7 +14,6 @@ function decode(base64: string) {
   return bytes;
 }
 
-// Custom PCM decoding as per guidelines
 async function decodeAudioData(
   data: Uint8Array,
   ctx: AudioContext,
@@ -53,7 +51,7 @@ export const generateDailyQuestion = async (dateStr: string): Promise<EnglishQue
         properties: {
           id: { type: Type.STRING },
           date: { type: Type.STRING },
-          question: { type: Type.STRING, description: "The actual question in Korean (e.g., '남자가 전화를 건 목적으로 가장 적절한 것은?')" },
+          question: { type: Type.STRING },
           dialogue: {
             type: Type.ARRAY,
             items: {
@@ -76,9 +74,9 @@ export const generateDailyQuestion = async (dateStr: string): Promise<EnglishQue
               required: ["id", "text"]
             }
           },
-          correctAnswer: { type: Type.INTEGER, description: "The ID of the correct choice (1-5)" },
-          explanation: { type: Type.STRING, description: "Detailed explanation in Korean" },
-          transcript: { type: Type.STRING, description: "Full English transcript" }
+          correctAnswer: { type: Type.INTEGER },
+          explanation: { type: Type.STRING },
+          transcript: { type: Type.STRING }
         },
         required: ["id", "date", "question", "dialogue", "choices", "correctAnswer", "explanation", "transcript"]
       }
@@ -91,8 +89,6 @@ export const generateDailyQuestion = async (dateStr: string): Promise<EnglishQue
 
 export const generateQuestionAudio = async (question: EnglishQuestion): Promise<AudioBuffer> => {
   const ai = new GoogleGenAI({ apiKey: API_KEY });
-  
-  // Format transcript for multi-speaker TTS
   const dialogueLines = question.dialogue.map(d => `${d.speaker}: ${d.text}`).join('\n');
   const ttsPrompt = `Please read the following English listening exam dialogue clearly and at a natural test-taking pace:\n\n${dialogueLines}`;
 

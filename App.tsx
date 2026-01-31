@@ -1,8 +1,8 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { EnglishQuestion, AppState } from './types';
-import { generateDailyQuestion, generateQuestionAudio } from './services/geminiService';
-import AudioPlayer from './components/AudioPlayer';
+import { EnglishQuestion, AppState } from './types.ts';
+import { generateDailyQuestion, generateQuestionAudio } from './services/geminiService.ts';
+import AudioPlayer from './components/AudioPlayer.tsx';
 
 const App: React.FC = () => {
   const [state, setState] = useState<AppState>({
@@ -34,15 +34,14 @@ const App: React.FC = () => {
       setState(prev => ({ 
         ...prev, 
         loading: false, 
-        error: "Failed to load today's challenge. Please try again later." 
+        error: "오늘의 문제를 불러오지 못했습니다. 잠시 후 다시 시도해주세요." 
       }));
     }
   }, []);
 
   useEffect(() => {
     fetchDailyContent();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [fetchDailyContent]);
 
   const handleSelectChoice = (id: number) => {
     if (state.isSubmitted) return;
@@ -96,7 +95,6 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
-      {/* Header */}
       <header className="bg-white border-b border-slate-200 px-6 py-4 sticky top-0 z-10 shadow-sm">
         <div className="max-w-3xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -114,11 +112,8 @@ const App: React.FC = () => {
         </div>
       </header>
 
-      {/* Main Content */}
       <main className="flex-grow p-4 md:p-8">
         <div className="max-w-3xl mx-auto space-y-8">
-          
-          {/* Audio Section */}
           <div className="space-y-4">
             <div className="flex items-center gap-2 text-slate-700 font-semibold mb-2">
               <i className="fa-solid fa-volume-high text-blue-500"></i>
@@ -127,7 +122,6 @@ const App: React.FC = () => {
             <AudioPlayer audioBuffer={audioBuffer} />
           </div>
 
-          {/* Question Section */}
           <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
             <div className="p-6 md:p-8">
               <h2 className="text-xl md:text-2xl font-bold text-slate-800 mb-6 leading-snug">
@@ -187,7 +181,6 @@ const App: React.FC = () => {
             </div>
           </div>
 
-          {/* Feedback Section */}
           {isSubmitted && (
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-6 pb-12">
               <div className={`p-6 rounded-2xl border-l-8 ${isCorrect ? 'bg-green-50 border-green-500' : 'bg-red-50 border-red-500'}`}>
@@ -243,15 +236,6 @@ const App: React.FC = () => {
       <footer className="py-8 border-t border-slate-200 text-center text-slate-400 text-xs">
         <p>© 2024 Daily G3 English Listening Challenge. Powered by Gemini AI.</p>
       </footer>
-
-      {/* Floating UI Elements */}
-      {!isSubmitted && selectedChoice !== null && (
-        <div className="fixed bottom-6 right-6 md:bottom-10 md:right-10 animate-bounce">
-          <div className="bg-blue-600 text-white px-4 py-2 rounded-full shadow-2xl font-bold text-sm">
-            제출 버튼을 눌러주세요!
-          </div>
-        </div>
-      )}
 
       <style>{`
         .custom-scrollbar::-webkit-scrollbar {
