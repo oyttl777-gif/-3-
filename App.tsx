@@ -18,23 +18,27 @@ const App: React.FC = () => {
 
   const fetchDailyContent = useCallback(async () => {
     setState(prev => ({ ...prev, loading: true, error: null }));
-    const today = new Date().toISOString().split('T')[0];
+    const today = new Date().toLocaleDateString('ko-KR');
     
     try {
       // 1. Generate Question
+      console.log("Generating question for:", today);
       const question = await generateDailyQuestion(today);
       setState(prev => ({ ...prev, question }));
 
       // 2. Generate Audio
+      console.log("Generating audio for dialogue...");
       const buffer = await generateQuestionAudio(question);
       setAudioBuffer(buffer);
       setState(prev => ({ ...prev, loading: false }));
     } catch (err: any) {
-      console.error(err);
+      console.error("Fetch error details:", err);
+      // 구체적인 에러 메시지를 상태에 저장
+      const errorMessage = err.message || "알 수 없는 오류가 발생했습니다.";
       setState(prev => ({ 
         ...prev, 
         loading: false, 
-        error: "오늘의 문제를 불러오지 못했습니다. 잠시 후 다시 시도해주세요." 
+        error: `오류 발생: ${errorMessage}\n(Vercel 설정에서 API_KEY가 올바른지 확인해주세요.)` 
       }));
     }
   }, []);
@@ -77,14 +81,20 @@ const App: React.FC = () => {
       <div className="min-h-screen flex items-center justify-center bg-slate-50 p-6 text-center">
         <div className="max-w-md w-full space-y-4">
           <i className="fa-solid fa-triangle-exclamation text-red-500 text-5xl"></i>
-          <h2 className="text-xl font-bold text-slate-800">문제가 발생했습니다</h2>
-          <p className="text-slate-600">{state.error}</p>
+          <h2 className="text-xl font-bold text-slate-800">문제를 불러오지 못했습니다</h2>
+          <div className="p-4 bg-red-50 rounded-lg text-red-700 text-sm font-mono whitespace-pre-wrap text-left">
+            {state.error}
+          </div>
           <button 
             onClick={fetchDailyContent}
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-bold shadow-md"
           >
             다시 시도하기
           </button>
+          <p className="text-xs text-slate-400 mt-4">
+            TIP: Vercel 프로젝트 설정의 Environment Variables에 <br/>
+            <strong>API_KEY</strong>가 등록되어 있는지 확인하세요.
+          </p>
         </div>
       </div>
     );
